@@ -32,3 +32,9 @@ jobs:
 
     - name: Unit Test
       run: make test
+    
+    - name: Build AAR
+      run: |
+        go get golang.org/x/mobile/cmd/gomobile
+        gomobile init
+        make build 
