@@ -18,7 +18,7 @@ This will produce `mobile.framework` file in the current directory, which can be
 ### Android
 
 ```
-gomobile bind -v -target=android github.com/pip1998/secretly-lib/cmd/secretly/mobile
+gomobile bind -v -target=android -javapkg com.zcytech.secretly.lib github.com/pip1998/secretly-lib/cmd/secretly/mobile
 ```
 This will generate `mobile.aar` file in the current dir.
 
