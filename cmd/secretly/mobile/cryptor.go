@@ -18,10 +18,12 @@ package mobile
 
 import "github.com/pip1998/secretly-lib/pkg/crypto"
 
+//EncryptEcies encrypt with ecies func
 func EncryptEcies(pub, value []byte) ([]byte, error) {
 	return crypto.Encrypt(pub, value)
 }
 
+//DecryptEcies decrypt with ecies func
 func DecryptEcies(prv, value []byte) ([]byte, error) {
 	return crypto.Decrypt(prv, value)
 }

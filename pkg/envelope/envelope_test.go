@@ -87,3 +87,64 @@ func TestEnvelope_Valid(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+func TestEnvelope_Sender(t *testing.T) {
+	// marshal, before send
+	content := "test"
+	prv, pub := defaultTestKey()
+	e, err := NewEnvelope([]byte(content), pub, DefaultDsa, DefaultCipher)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := e.EncodeToRLPBytes(prv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// recover, after receive
+	re, err := DecodeFromRLPBytes(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := re.Valid(); err != nil {
+		t.Fatal(err)
+	}
+
+	sender, err := re.Sender()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(pub, sender) {
+		t.Fatalf("got wrong sender")
+	}
+}
+
+func TestEnvelope_Decrypt(t *testing.T) {
+	// marshal, before send
+	content := []byte("test")
+	prv, pub := defaultTestKey()
+	e, err := NewEnvelope(content, pub, DefaultDsa, DefaultCipher)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := e.EncodeToRLPBytes(prv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// recover, after receive
+	re, err := DecodeFromRLPBytes(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := re.Valid(); err != nil {
+		t.Fatal(err)
+	}
+	// decrypt
+	plain, err := re.Decrypt(crypto.FromECDSA(prv))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(plain, content) {
+		t.Errorf("content not equal: \ngot: %v, \nwant: %v", plain, raw)
+	}
+	t.Logf("plain: %s", plain)
+}
