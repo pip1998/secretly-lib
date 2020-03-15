@@ -147,4 +147,5 @@ func TestEnvelope_Decrypt(t *testing.T) {
 		t.Errorf("content not equal: \ngot: %v, \nwant: %v", plain, raw)
 	}
 	t.Logf("plain: %s", plain)
+	t.Logf("\ne.mac:\n%x\nre.mac\n%x", e.Mac, re.Mac)
 }

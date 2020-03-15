@@ -17,7 +17,9 @@
 package envelope
 
 import (
+	"bytes"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -43,6 +45,7 @@ type Envelope struct {
 	Dsa     string // digital signature algorithm
 	Cipher  string // symmetric-key algorithm
 	Payload []byte // symmetric encryped content
+	Mac     []byte // mac to verify decrypted plain content
 	Key     []byte // public key encryped symmetric-key
 	Iv      []byte // iv of cipher
 	Sig     []byte // signature signed by sender with field above
@@ -66,6 +69,7 @@ func NewEnvelope(content, pub []byte, dsa, cipher string) (e *Envelope, err erro
 		return
 	}
 	e.Key, err = crypto2.Encrypt(pub, symmetricKey)
+	e.Mac = mac(content, symmetricKey)
 	return
 }
 
@@ -136,9 +140,17 @@ func (e *Envelope) Decrypt(prv []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	mac := mac(plain, symmetricKey)
+	if !bytes.Equal(mac, e.Mac) {
+		return nil, errors.New("decrypt fail, mac not match")
+	}
 	return plain, nil
 }
 
+func mac(content, symmetricKey []byte) []byte {
+	hash := crypto.Keccak256Hash(content, symmetricKey)
+	return hash[:]
+}
 func (e *Envelope) verifySig() bool {
 	sig := e.Sig
 	if sig == nil || len(sig) != crypto.SignatureLength {
@@ -170,6 +182,7 @@ func (e *Envelope) rlpContent() ([]byte, error) {
 		e.Payload,
 		e.Key,
 		e.Iv,
+		e.Mac,
 	})
 }
 
