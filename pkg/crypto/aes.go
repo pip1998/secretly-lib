@@ -21,6 +21,7 @@ import (
 	"crypto/cipher"
 )
 
+//AesCTRXOR aes encrypt an decrypt
 func AesCTRXOR(key, inText, iv []byte) ([]byte, error) {
 	aesBlock, err := aes.NewCipher(key)
 	if err != nil {

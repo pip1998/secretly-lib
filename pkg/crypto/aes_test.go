@@ -40,6 +40,8 @@ func TestAesCTRXOR(t *testing.T) {
 	t.Logf("encrypted msg: %x", enmsg)
 
 	// decrypt
+	_, _ = AesCTRXOR(key, enmsg, iv)
+	t.Logf("encrypted msg: %x", enmsg)
 	demsg, err := AesCTRXOR(key, enmsg, iv)
 	if err != nil {
 		t.Fatal(err)

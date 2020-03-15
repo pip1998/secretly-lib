@@ -23,11 +23,13 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/ecies"
 )
 
+//Cryptor cryptor interface
 type Cryptor interface {
 	DecryptEcies(value []byte) []byte
 	EncryptEcies(to string, value []byte) []byte
 }
 
+//Encrypt
 func Encrypt(pub, value []byte) ([]byte, error) {
 
 	ecdsaPub, err := crypto.UnmarshalPubkey(pub)
@@ -38,6 +40,7 @@ func Encrypt(pub, value []byte) ([]byte, error) {
 	return ecies.Encrypt(rand.Reader, pubKey, value, nil, nil)
 }
 
+//Decrypt
 func Decrypt(prv, value []byte) ([]byte, error) {
 	ecdsaPrv, err := crypto.ToECDSA(prv)
 	if err != nil {

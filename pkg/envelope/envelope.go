@@ -48,6 +48,7 @@ type Envelope struct {
 	Sig     []byte // signature signed by sender with field above
 }
 
+//NewEnvelope create an envelope, with content and public key of receiver
 func NewEnvelope(content, pub []byte, dsa, cipher string) (e *Envelope, err error) {
 	e = &Envelope{
 		Version: DefaultVersion,
@@ -68,6 +69,7 @@ func NewEnvelope(content, pub []byte, dsa, cipher string) (e *Envelope, err erro
 	return
 }
 
+//EncodeToRLPBytes marshal an Envelope to raw with signature
 func (e *Envelope) EncodeToRLPBytes(prv *ecdsa.PrivateKey) ([]byte, error) {
 	hash := e.Hash()
 	log.Debug("EncodeToRLPBytes", "hash", fmt.Sprintf("%x", hash))
@@ -82,6 +84,7 @@ func (e *Envelope) EncodeToRLPBytes(prv *ecdsa.PrivateKey) ([]byte, error) {
 	return rlp.EncodeToBytes(e)
 }
 
+//DecodeFromRLPBytes unmarshal raw to an Envelope
 func DecodeFromRLPBytes(raw []byte) (*Envelope, error) {
 	e := &Envelope{}
 	err := rlp.DecodeBytes(raw, e)
@@ -112,8 +115,36 @@ func (e *Envelope) Valid() error {
 	return nil
 }
 
+//Sender sender of the envelope
+func (e *Envelope) Sender() ([]byte, error) {
+	sig := e.Sig
+	if sig == nil || len(sig) != crypto.SignatureLength {
+		return nil, fmt.Errorf("signature not valid %x", sig)
+	}
+	sighash := e.Hash()
+	// recover the public key from the signature
+	return crypto.Ecrecover(sighash[:], sig)
+}
+
+//Decrypt decrypt envelope with your private key
+func (e *Envelope) Decrypt(prv []byte) ([]byte, error) {
+	symmetricKey, err := crypto2.Decrypt(prv, e.Key)
+	if err != nil {
+		return nil, err
+	}
+	plain, err := crypto2.AesCTRXOR(symmetricKey, e.Payload, e.Iv)
+	if err != nil {
+		return nil, err
+	}
+	return plain, nil
+}
+
 func (e *Envelope) verifySig() bool {
 	sig := e.Sig
+	if sig == nil || len(sig) != crypto.SignatureLength {
+		log.Debug("Payload_VerifySig", "err", fmt.Errorf("signature not valid %x", sig))
+		return false
+	}
 	sighash := e.Hash()
 	// recover the public key from the signature
 	pub, err := crypto.Ecrecover(sighash[:], sig)
