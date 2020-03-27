@@ -16,13 +16,31 @@
 
 package mobile
 
-//Cryptor please implement this interface to provide things about crypto
-type Cryptor interface {
-	EncryptEcies(to string, value []byte) []byte
-	DecryptEcies(value []byte) []byte
-}
+import (
+	"os"
+	"testing"
+)
 
-type PlainKey struct {
-	PublicKey  string
-	PrivateKey string
+const (
+	key  = ""
+	file = "/tmp/key.json"
+)
+
+func TestGenerateKey(t *testing.T) {
+	if _, err := os.Stat(file); err == nil {
+		err := os.Remove(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	err := GenerateKey(key, file)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	plain, err := GetKey(key, file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(plain.PrivateKey, plain.PublicKey)
 }
